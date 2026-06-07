@@ -1,26 +1,36 @@
-import Notification from "../db/notificationModel";
+import axios from "axios";
 import { Log } from "../../../logging_middleware/index";
+import { AUTH_TOKEN } from "../config/env";
+
+const EXTERNAL_API = "http://20.244.56.144/evaluation-service/notifications";
+
+const readSet = new Set<string>();
 
 export async function getNotifications(limit: number, page: number, type?: string) {
   await Log("backend", "info", "service", `Fetching notifications limit=${limit} page=${page} type=${type || "all"}`);
-  const query: Record<string, unknown> = {};
-  if (type) {
-    query.type = type;
-  }
-  const skip = (page - 1) * limit;
-  const notifications = await Notification.find(query).skip(skip).limit(limit).sort({ createdAt: -1 });
-  const total = await Notification.countDocuments(query);
-  return { notifications, total, page, limit };
+  const params: Record<string, string | number> = { limit, page };
+  if (type) params.notification_type = type;
+
+  const response = await axios.get(EXTERNAL_API, {
+    headers: { Authorization: `Bearer ${AUTH_TOKEN}` },
+    params,
+  });
+
+  const notifications = (response.data.notifications || []).map((n: any) => ({
+    ...n,
+    isRead: readSet.has(n.ID),
+  }));
+
+  return { notifications, total: notifications.length, page, limit };
 }
 
 export async function markAsRead(id: string) {
   await Log("backend", "info", "service", `Marking notification ${id} as read`);
-  const notification = await Notification.findOneAndUpdate({ id }, { isRead: true }, { new: true });
-  return notification;
+  readSet.add(id);
+  return { id, isRead: true };
 }
 
 export async function getUnreadCount() {
-  await Log("backend", "info", "service", "Fetching unread notification count");
-  const count = await Notification.countDocuments({ isRead: false });
-  return count;
+  await Log("backend", "info", "service", "Fetching unread count");
+  return readSet.size;
 }
