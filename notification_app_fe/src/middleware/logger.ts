@@ -14,7 +14,7 @@ type Package =
 export async function Log(level: Level, pkg: Package, message: string): Promise<void> {
   const token = process.env.NEXT_PUBLIC_AUTH_TOKEN || process.env.AUTH_TOKEN;
   try {
-    await fetch("http://20.244.56.144/evaluation-service/logs", {
+    await fetch("http://4.224.186.213/evaluation-service/logs", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

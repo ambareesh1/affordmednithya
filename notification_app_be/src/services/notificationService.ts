@@ -2,7 +2,7 @@ import axios from "axios";
 import { Log } from "../../../logging_middleware/index";
 import { AUTH_TOKEN } from "../config/env";
 
-const EXTERNAL_API = "http://20.244.56.144/evaluation-service/notifications";
+const EXTERNAL_API = "http://4.224.186.213/evaluation-service/notifications";
 
 const readSet = new Set<string>();
 
