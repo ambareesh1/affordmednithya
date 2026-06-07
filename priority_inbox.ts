@@ -91,7 +91,7 @@ function getTopN(notifications: Notification[], n: number): Notification[] {
 
 async function fetchAllNotifications(): Promise<Notification[]> {
   const token = process.env.AUTH_TOKEN;
-  const response = await axios.get("http://4.224.186.213/evaluation-service/notifications", {
+  const response = await axios.get("http://20.244.56.144/evaluation-service/notifications", {
     headers: { Authorization: `Bearer ${token}` },
     params: { limit: 100, page: 1 },
   });
