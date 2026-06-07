@@ -29,7 +29,7 @@ export async function Log(stack: Stack, level: Level, pkg: Package, message: str
   return new Promise((resolve) => {
     const req = http.request(
       {
-        host: "20.244.56.144",
+        host: "4.224.186.213",
         path: "/evaluation-service/logs",
         method: "POST",
         headers: {
