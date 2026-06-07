@@ -12,14 +12,10 @@ type Package =
   | "utils";
 
 export async function Log(level: Level, pkg: Package, message: string): Promise<void> {
-  const token = process.env.NEXT_PUBLIC_AUTH_TOKEN || process.env.AUTH_TOKEN;
   try {
-    await fetch("http://4.224.186.213/evaluation-service/logs", {
+    await fetch("/api/log", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ stack: "frontend", level, package: pkg, message }),
     });
   } catch {
