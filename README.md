@@ -1,152 +1,206 @@
 # Campus Notification Platform
 
-A full stack web application for real-time campus notifications — Placements, Events, and Results.
+A full stack web application where students get real-time notifications about Placements, Events, and Results.
+
+---
 
 ## Tech Stack
 
-| Layer | Technology |
-|---|---|
-| Frontend | Next.js 14, React 18, Material UI |
-| Backend | Node.js, Express, TypeScript |
-| Database | MongoDB (Mongoose) |
-| Logging | Custom middleware → external log API |
+- **Frontend** - Next.js, React, Material UI
+- **Backend** - Node.js, Express, TypeScript
+- **Database** - MongoDB
+- **Logging** - Custom logging middleware (no console.log)
 
 ---
 
-## Project Structure
+## Folder Structure
 
 ```
-.
-├── logging_middleware/        # Reusable logging package
-├── notification_app_be/       # Express + TypeScript backend
-├── notification_app_fe/       # Next.js + MUI frontend
-├── priority_inbox.ts          # Stage 6 — standalone priority inbox code
-└── notification_system_design.md  # System design (Stages 1–6)
+affordmednithya/
+├── logging_middleware/           # Shared logging package used by backend and frontend
+├── notification_app_be/          # Express backend (runs on port 5000)
+├── notification_app_fe/          # Next.js frontend (runs on port 3000)
+├── priority_inbox.ts             # Stage 6 - priority inbox standalone script
+└── notification_system_design.md # System design document (Stages 1 to 6)
 ```
 
 ---
 
-## Prerequisites
+## Step 1 - Get Your Auth Token
 
-- Node.js >= 18
-- MongoDB running locally (or a MongoDB Atlas URI)
-- Auth token from the evaluation server (see Registration below)
+You need an auth token before running anything.
+
+### Register (do this only once)
+
+Send a POST request to:
+
+```
+http://4.224.186.213/evaluation-service/register
+```
+
+Request body:
+
+```json
+{
+  "email": "your_college_email@example.com",
+  "name": "Your Full Name",
+  "mobileNo": "9999999999",
+  "githubUsername": "your_github_username",
+  "rollNo": "2023005195",
+  "accessCode": "code_from_your_email"
+}
+```
+
+Save the `clientID` and `clientSecret` from the response. You cannot get them again.
+
+### Get Token
+
+Send a POST request to:
+
+```
+http://4.224.186.213/evaluation-service/auth
+```
+
+Request body:
+
+```json
+{
+  "email": "your_college_email@example.com",
+  "name": "Your Full Name",
+  "rollNo": "2023005195",
+  "accessCode": "code_from_your_email",
+  "clientID": "your_client_id",
+  "clientSecret": "your_client_secret"
+}
+```
+
+Copy the `access_token` from the response. This is your `AUTH_TOKEN`.
 
 ---
 
-## Registration & Auth Token
-
-1. POST to `http://4.224.186.213/evaluation-service/register` with your details to get `clientID` and `clientSecret`
-2. POST to `http://4.224.186.213/evaluation-service/auth` with those credentials to get your `access_token`
-3. Use that token as `AUTH_TOKEN` in the backend and `NEXT_PUBLIC_AUTH_TOKEN` in the frontend
-
----
-
-## Running the Backend
+## Step 2 - Run the Backend
 
 ```bash
 cd notification_app_be
 npm install
 ```
 
-Create a `.env` file:
+Create a file called `.env` inside `notification_app_be`:
 
-```env
+```
 PORT=5000
 MONGODB_URI=mongodb://localhost:27017/campus_notifications
-AUTH_TOKEN=your_access_token_here
+AUTH_TOKEN=paste_your_access_token_here
 ```
 
-Start the dev server:
+Start the server:
 
 ```bash
 npm run dev
 ```
 
-The backend runs on `http://localhost:5000`.
+Backend runs at `http://localhost:5000`
 
-### API Endpoints
+### Available API Endpoints
 
-| Method | Endpoint | Description |
-|---|---|---|
-| GET | `/api/notifications` | List notifications (supports `limit`, `page`, `notification_type`) |
-| GET | `/api/notifications/:id` | Get single notification |
-| PATCH | `/api/notifications/:id/read` | Mark notification as read |
+| Method | URL | What it does |
+|--------|-----|--------------|
+| GET | `/api/notifications` | Get all notifications |
+| GET | `/api/notifications/:id` | Get one notification |
+| PATCH | `/api/notifications/:id/read` | Mark as read |
 | GET | `/api/notifications/unread-count` | Get unread count |
+
+You can also filter with query params:
+
+```
+GET /api/notifications?limit=10&page=1&notification_type=Placement
+```
 
 ---
 
-## Running the Frontend
+## Step 3 - Run the Frontend
 
 ```bash
 cd notification_app_fe
 npm install
 ```
 
-Create a `.env.local` file:
+Create a file called `.env.local` inside `notification_app_fe`:
 
-```env
-NEXT_PUBLIC_AUTH_TOKEN=your_access_token_here
+```
+NEXT_PUBLIC_AUTH_TOKEN=paste_your_access_token_here
 ```
 
-Start the dev server:
+Start the frontend:
 
 ```bash
 npm run dev
 ```
 
-The frontend runs on `http://localhost:3000`.
+Frontend runs at `http://localhost:3000`
 
 ### Pages
 
-| Route | Description |
-|---|---|
-| `/` | All notifications with type filter and pagination |
-| `/priority` | Priority inbox — top N notifications ranked by type weight and recency |
+| Page | URL | Description |
+|------|-----|-------------|
+| All Notifications | `http://localhost:3000` | Shows all notifications with type filter |
+| Priority Inbox | `http://localhost:3000/priority` | Shows top N notifications ranked by priority |
 
 ---
 
-## Running the Priority Inbox Script (Stage 6)
+## Step 4 - Run the Priority Inbox Script (Stage 6)
+
+This is a standalone script that fetches notifications and shows the top 10 by priority.
+
+From the root folder:
 
 ```bash
-cd <root>
-npm install axios
+# Windows
+set AUTH_TOKEN=your_access_token_here && npx ts-node priority_inbox.ts
+
+# Mac / Linux
 AUTH_TOKEN=your_access_token_here npx ts-node priority_inbox.ts
 ```
 
-Outputs the top 10 priority notifications as JSON.
-
 ---
 
-## Running the Logging Middleware
+## How Notifications are Prioritized
 
-The logging middleware is used internally by both backend and frontend. To use it standalone:
-
-```bash
-cd logging_middleware
-npm install
-npm run build
-```
-
-Then import and call:
-
-```ts
-import { Log } from "./logging_middleware";
-await Log("backend", "info", "service", "Something happened");
-```
-
----
-
-## Notification Types
-
-| Type | Priority Weight |
-|---|---|
+| Type | Weight |
+|------|--------|
 | Placement | 3 (highest) |
 | Result | 2 |
 | Event | 1 (lowest) |
 
+Notifications with higher weight show first. If two notifications have the same type, the newer one shows first.
+
 ---
 
-## How Read State Works
+## How Read / Unread Works
 
-The frontend tracks which notifications have been viewed using `localStorage`. Clicking a notification card marks it as read. Unread notifications are highlighted with a blue border and a **NEW** badge.
+The frontend stores which notifications you have seen in `localStorage`. When you open a notification it gets marked as read. Unread notifications show a blue border and a **NEW** badge.
+
+---
+
+## Common Errors and Fixes
+
+**Error: Cannot find module 'axios' in logging_middleware**
+
+This means you have an old version of the code. Pull the latest from GitHub:
+
+```bash
+git pull origin main
+```
+
+Then re-run `npm install` inside `notification_app_be` and `notification_app_fe`.
+
+**Error: MongoDB connection failed**
+
+Make sure MongoDB is running on your machine:
+
+- Windows: Search for "MongoDB" in Services and start it
+- Or use MongoDB Atlas and paste the connection string in `MONGODB_URI`
+
+**Error: 401 Unauthorized from log API**
+
+Your `AUTH_TOKEN` is wrong or expired. Re-do Step 1 to get a new token.
