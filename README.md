@@ -35,7 +35,7 @@ You need an auth token before running anything.
 Send a POST request to:
 
 ```
-http://4.224.186.213/evaluation-service/register
+http://20.244.56.144/evaluation-service/register
 ```
 
 Request body:
@@ -58,7 +58,7 @@ Save the `clientID` and `clientSecret` from the response. You cannot get them ag
 Send a POST request to:
 
 ```
-http://4.224.186.213/evaluation-service/auth
+http://20.244.56.144/evaluation-service/auth
 ```
 
 Request body:

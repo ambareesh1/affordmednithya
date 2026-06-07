@@ -1,7 +1,7 @@
 import axios from "axios";
 import { Log } from "../middleware/logger";
 
-const BASE_URL = "http://4.224.186.213/evaluation-service/notifications";
+const BASE_URL = "http://20.244.56.144/evaluation-service/notifications";
 
 export interface Notification {
   ID: string;
